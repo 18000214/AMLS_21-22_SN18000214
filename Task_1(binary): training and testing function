@@ -1,0 +1,93 @@
+"Training function"
+def train(X, Y, algorithm):
+
+    "Store the validation result"
+    result = {}
+
+    "Split the train set and validation set"
+    x_train, x_val, y_train, y_val = train_test_split(X, Y, train_size=0.8, random_state=True)
+
+    "Select an algorithm"
+    model = ALGORITHM_SET[algorithm]
+
+    "Train the model"
+    model.fit(x_train, y_train)
+
+    "Validate the performance"
+    y_predict = model.predict(x_val)
+
+
+    save_model(model, algorithm)
+
+    "Validation Accuracy"
+    precision = metrics.accuracy_score(y_val, y_predict)
+    result['Accuracy'] = precision
+    "Validation Recall"
+    recall = metrics.recall_score(y_val, y_predict, pos_label=1, average='binary')
+    result['Recall'] = recall
+    "Validation F1 Score"
+    f1_score = metrics.f1_score(y_val, y_predict, pos_label=1, average='binary')
+    result['F1 Score'] = f1_score
+
+    print('Validation result of {}:{}'.format(algorithm, result))
+
+    return result
+
+
+"Testing function"
+def test(X, Y, algorithm):
+    "Store the validation result"
+    result = {}
+
+    "Load trained model"
+    model = load_model(algorithm)
+
+    "Test the performance"
+    predict = model.predict(X)
+
+    "Test Accuracy"
+    precision = metrics.accuracy_score(Y, predict)
+    result['Accuracy'] = precision
+    "Test Recall"
+    recall = metrics.recall_score(Y, predict, pos_label=1, average='binary')
+    result['Recall'] = recall
+    "Test F1 Score"
+    f1_score = metrics.f1_score(Y, predict, pos_label=1, average='binary')
+    result['F1 Score'] = f1_score
+
+    print('Test result of {}:{}'.format(algorithm, result))
+
+    return result
+
+"Save model to given path"
+def save_model(model, algorithm):
+    "Whether exist a model"
+    if os.path.exists(MODEL_PATH+algorithm+'.pkl'):
+        os.remove(MODEL_PATH+algorithm+'.pkl')
+    "Save model"
+    joblib.dump(model, MODEL_PATH+algorithm+'.pkl')
+    print('Finish training! The model has been saved to {}{}.pkl'.format(MODEL_PATH, algorithm))
+
+"Load model from given path"
+def load_model(algorithm):
+
+    try:
+        model = joblib.load(MODEL_PATH+algorithm+'.pkl')
+        print('Load model from {}{}.pkl'.format(MODEL_PATH, algorithm))
+        return model
+    except:
+        print('No model found! Please train a model first!')
+
+
+
+if __name__ == '__main__':
+
+    "Training"
+    img_info = get_img_info('train_label.csv')
+    X_train, Y_train = get_data(img_info)
+    train(X_train, Y_train, ALGORITHM)
+
+    "Testing"
+    img_info = get_img_info('test_label.csv', train=False)
+    X_test, Y_test = get_data(img_info)
+    test(X_test, Y_test, ALGORITHM)

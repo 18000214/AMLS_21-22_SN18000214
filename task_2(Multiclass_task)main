@@ -1,0 +1,159 @@
+#pip install torch
+#pip install torchvision
+
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+
+Utilizing Pytorch to construct a CNN model for Brain tumor classification(Multiclass task)
+
+
+'''
+
+"import lib"
+
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from data_preprocess import *
+from utils import *
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
+
+EPOCH = 10
+BATCH_SIZE= 4
+LR= 0.001
+MODEL_PATH = '../model/'
+
+
+class TumorCNN(nn.Module):
+    def __init__(self):
+        super(TumorCNN,self).__init__()
+        self.conv1 = nn.Sequential(
+            # Convolution (3, 256, 256) ----> (16, 256, 256)
+            nn.Conv2d(
+                in_channels=3,
+                out_channels=16,
+                kernel_size=3,
+                stride=1,
+                padding=1
+            ),
+            nn.ReLU(),
+            "Maxpool (16, 256, 256) ----> (16, 128, 128)"
+            nn.MaxPool2d(kernel_size=2)
+        )
+
+        self.conv2 = nn.Sequential(
+            "Convolution (16, 128, 128) ----> (32, 128, 128)"
+            nn.Conv2d(
+                in_channels=16,
+                out_channels=32,
+                kernel_size=3,
+                stride=1,
+                padding=1
+            ),
+            nn.ReLU(),
+            "Maxpool (32, 128, 128) ----> (32, 64, 64)"
+            nn.MaxPool2d(kernel_size=2)
+        )
+
+        self.conv3 = nn.Sequential(
+            "Convolution (32, 64, 64) ----> (64, 64, 64)"
+            nn.Conv2d(
+                in_channels=32,
+                out_channels=64,
+                kernel_size=3,
+                stride=1,
+                padding=1
+            ),
+            nn.ReLU(),
+            "Maxpool (64, 64, 64) ----> (64, 32, 32)"
+            nn.MaxPool2d(kernel_size=2)
+        )
+
+        self.output = nn.Linear(64*32*32,4)
+
+    "Forward procedure"
+    def forward(self, x):
+        "(Batch_size, 3, 256, 256) --> (Batch_size , 16, 128, 128)"
+        out = self.conv1(x)
+        "(Batch_size, 16, 128, 128) --> (Batch_size, 32, 64, 64)"
+        out = self.conv2(out)
+        "(Batch_size, 32, 64, 64) --> (Batch_size, 64, 32, 32)"
+        out = self.conv3(out)
+        "Flatten (Batch_size, 64, 32, 32) --> (Batch_size, 64*32*32)"
+        out = out.view(out.size(0), -1)
+        out = self.output(out)
+        return out
+
+
+
+if __name__ == '__main__':
+
+    "Initialize the CNN model"
+    multiclass_cnn = TumorCNN()
+    "Select the optimizer"
+    optimizer = torch.optim.Adam(multiclass_cnn.parameters(), lr=LR)
+    "Loss function"
+    loss_func = nn.CrossEntropyLoss()
+
+    "Initialize the training data and testing data"
+    train_dataset = TumorDataset(csv_path=TRAIN_PATH + 'train_label.csv', train=True)
+    test_dataset = TumorDataset(csv_path=TEST_PATH + 'test_label.csv', train=False)
+
+    train_loader = DataLoader(
+        dataset=train_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True
+    )
+
+    test_loader = DataLoader(
+        dataset=test_dataset,
+        batch_size=BATCH_SIZE
+    )
+
+    "Record the loss and accuracy during train"
+    loss_record = []
+    accuracy_record = []
+
+    for epoch in range(EPOCH):
+        for step, (train_data, train_label) in enumerate(train_loader):
+
+            "Forward"
+            output = multiclass_cnn(train_data)
+            "Loss"
+            loss = loss_func(output, train_label)
+
+            "Gradient to zero"
+            optimizer.zero_grad()
+            "Backward"
+            loss.backward()
+            "Update the parameter"
+            optimizer.step()
+
+            loss_record.append(loss.item())
+
+            "Evaluate for every 50 step"
+            if step % 50 == 0:
+                test_accuracy = 0
+                with torch.no_grad():
+                    for i, (test_data, test_label) in enumerate(test_loader):
+                        test_output = multiclass_cnn(test_data)
+                        pred_y = torch.max(test_output, 1)[1].data.numpy()
+                        test_accuracy += float((pred_y == test_label.data.numpy()).astype(int).sum()) / float(test_label.size(0))
+                    accuracy_record.append((test_accuracy/int(i)))
+                    print('--------------------------------------------------------')
+                    print('Test Batch:', step, 'Test accuracy: %.2f' % (test_accuracy/int(i)))
+                    print('--------------------------------------------------------')
+            print('Epoch: ', epoch, '| Train loss: %.4f' % loss.data.numpy())
+
+    "torch.save(multiclass_cnn, MODEL_PATH + '/multiclass_cnn.pkl')"
+
+    train_epoch = [i for i in range(len(loss_record))]
+    test_epoch = [j for j in range(len(accuracy_record))]
+    "Plot the training loss vs. epoch"
+    plot_line(train_epoch, loss_record, 'Step', 'Loss', 750, 0.5, 'Loss during training')
+    "Plot the testing accuracy vs. epoch"
+    plot_line(test_epoch, accuracy_record, 'Epoch', 'Accuracy', 30, 0.1, 'Accuracy during testing')
+    print('Finish training')

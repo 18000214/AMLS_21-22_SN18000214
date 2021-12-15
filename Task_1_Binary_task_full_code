@@ -16,11 +16,12 @@ from sklearn.preprocessing import MinMaxScaler, normalize
 from sklearn.model_selection import train_test_split
 
 "Set path to access model, train set and test set"
+ALGORITHM_SET = {'SVM': SVC(kernel='rbf',gamma=0.001)}
 MODEL_PATH = '../model/'
 TRAIN_PATH = '../dataset/train/'
 TEST_PATH = '../dataset/test/'
 SHAPE = (32, 32)
-ALGORITHM = {'SVM': SVC(kernel='rbf',gamma=0.001)}
+ALGORITHM = 'SVM'
 
 "Get image information"
 def get_img_info(csv_file, train = True):

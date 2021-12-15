@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+
+
+
+'''
+
+"import lib"
+from torch.utils.data import dataset
+from torchvision import transforms
+from PIL import Image
+
+TRAIN_PATH = '../dataset/train/'
+TEST_PATH = '../dataset/test/'
+TUMOR_TYPE = {'no_tumor':0,
+              'meningioma_tumor':1,
+              'glioma_tumor':2,
+              'pituitary_tumor':3}
+
+class TumorDataset(dataset.Dataset):
+
+    def __init__(self, csv_path, train=True):
+        super(TumorDataset, self).__init__()
+        self.img_info = self.get_img(csv_path)
+        self.train = train
+
+        if train:
+            self.data_path = TRAIN_PATH
+        else:
+            self.data_path = TEST_PATH
+
+        "Preprocess the training data"
+        self.train_transforms = transforms.Compose([
+            transforms.Resize(256),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5], std=[0.5])
+        ])
+
+        "Preprocess the testing data"
+        self.test_transforms = transforms.Compose([
+            transforms.Resize(256),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5], std=[0.5])
+        ])
+
+    "Get an image and it's label"
+    def __getitem__(self, index):
+        img_name, label = self.img_info[index]
+        img = Image.open(self.data_path+img_name)
+        label = TUMOR_TYPE[label]
+
+        "Transform the training data and testing data separately"
+        if self.train:
+            img = self.train_transforms(img)
+        else:
+            img = self.test_transforms(img)
+
+        return img, label
+
+
+    "Count the number of data"
+    def __len__(self):
+
+        return len(self.img_info)
+
+
+    "Get the image infomation from the csv format file"
+    def get_img(self, csv_path):
+
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            image_info = []
+            infos = f.readlines()
+            "Remove header"
+            infos = infos[1:]
+            "Convert each element into tuple"
+            for info in infos:
+                info = info.strip('\n')
+                info = info.split(',')
+                image_info.append(tuple(info))
+            return image_info

@@ -19,7 +19,7 @@ The role of each file:
 
 How to run code:
 1. put all folders and files in right path with right name
-2. go to the files "Task_A_Binary_task_full_code" or "Task_B(Multiclass_task)main", press run, if any library did not installed, use pip install first, and run again
+2. open the files "Task_A_Binary_task_full_code" or "Task_B(Multiclass_task)main" in Jupyter notebook, press run, if any library did not installed, use pip install first, and run again
 
 Necessary packages or header files:
 opency-python, torchvision

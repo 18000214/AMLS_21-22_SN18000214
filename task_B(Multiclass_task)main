@@ -10,7 +10,7 @@ Utilizing Pytorch to construct a CNN model for Brain tumor classification(Multic
 
 '''
 
-# import lib
+"import lib"
 
 import torch
 import torch.nn as nn
@@ -31,7 +31,7 @@ class TumorCNN(nn.Module):
     def __init__(self):
         super(TumorCNN,self).__init__()
         self.conv1 = nn.Sequential(
-            # Convolution (3, 256, 256) ----> (16, 256, 256)
+            "Convolution (3, 256, 256) ----> (16, 256, 256)"
             nn.Conv2d(
                 in_channels=3,
                 out_channels=16,
@@ -40,12 +40,12 @@ class TumorCNN(nn.Module):
                 padding=1
             ),
             nn.ReLU(),
-            # Maxpool (16, 256, 256) ----> (16, 128, 128)
+            "Maxpool (16, 256, 256) ----> (16, 128, 128)"
             nn.MaxPool2d(kernel_size=2)
         )
 
         self.conv2 = nn.Sequential(
-            # Convolution (16, 128, 128) ----> (32, 128, 128)
+            "Convolution (16, 128, 128) ----> (32, 128, 128)"
             nn.Conv2d(
                 in_channels=16,
                 out_channels=32,
@@ -54,12 +54,12 @@ class TumorCNN(nn.Module):
                 padding=1
             ),
             nn.ReLU(),
-            # Maxpool (32, 128, 128) ----> (32, 64, 64)
+            "Maxpool (32, 128, 128) ----> (32, 64, 64)"
             nn.MaxPool2d(kernel_size=2)
         )
 
         self.conv3 = nn.Sequential(
-            # Convolution (32, 64, 64) ----> (64, 64, 64)
+            "Convolution (32, 64, 64) ----> (64, 64, 64)"
             nn.Conv2d(
                 in_channels=32,
                 out_channels=64,
@@ -68,21 +68,21 @@ class TumorCNN(nn.Module):
                 padding=1
             ),
             nn.ReLU(),
-            # Maxpool (64, 64, 64) ----> (64, 32, 32)
+            "Maxpool (64, 64, 64) ----> (64, 32, 32)"
             nn.MaxPool2d(kernel_size=2)
         )
 
         self.output = nn.Linear(64*32*32,4)
 
-    # Forward procedure
+    "Forward procedure"
     def forward(self, x):
-        # (Batch_size, 3, 256, 256) --> (Batch_size , 16, 128, 128)
+        "(Batch_size, 3, 256, 256) --> (Batch_size , 16, 128, 128)"
         out = self.conv1(x)
-        # (Batch_size, 16, 128, 128) --> (Batch_size, 32, 64, 64)
+        "(Batch_size, 16, 128, 128) --> (Batch_size, 32, 64, 64)"
         out = self.conv2(out)
-        # (Batch_size, 32, 64, 64) --> (Batch_size, 64, 32, 32)
+        "(Batch_size, 32, 64, 64) --> (Batch_size, 64, 32, 32)"
         out = self.conv3(out)
-        # Flatten (Batch_size, 64, 32, 32) --> (Batch_size, 64*32*32)
+        "Flatten (Batch_size, 64, 32, 32) --> (Batch_size, 64*32*32)"
         out = out.view(out.size(0), -1)
         out = self.output(out)
         return out
@@ -91,14 +91,14 @@ class TumorCNN(nn.Module):
 
 if __name__ == '__main__':
 
-    # Initialize the CNN model
+    "Initialize the CNN model"
     multiclass_cnn = TumorCNN()
-    # Select the optimizer
+    "Select the optimizer"
     optimizer = torch.optim.Adam(multiclass_cnn.parameters(), lr=LR)
-    # Loss function
+    "Loss function"
     loss_func = nn.CrossEntropyLoss()
 
-    # Initialize the training data and testing data
+    "Initialize the training data and testing data"
     train_dataset = TumorDataset(csv_path=TRAIN_PATH + 'train_label.csv', train=True)
     test_dataset = TumorDataset(csv_path=TEST_PATH + 'test_label.csv', train=False)
 
@@ -113,39 +113,39 @@ if __name__ == '__main__':
         batch_size=BATCH_SIZE
     )
 
-    # Record the loss and accuracy during training and test
+    "Record the loss and accuracy during training and test"
     loss_record = []
     train_accuracy_record = []
     test_accuracy_record = []
 
     for epoch in range(EPOCH):
-        # Input a batch of training data
+        "Input a batch of training data"
         train_add = 0
         for step, (train_data, train_label) in enumerate(train_loader):
 
-            # Store the accuracy during training
+            "Store the accuracy during training"
             train_accuracy = 0
-            # Forward
+            "Forward"
             output = multiclass_cnn(train_data)
-            # Training Accuracy
+            "Training Accuracy"
             prediction = torch.max(output, 1)[1].data.numpy()
-            # Accuracy for this batch
+            "Accuracy for this batch"
             train_accuracy += float((prediction == train_label.data.numpy()).astype(int).sum()) / float(train_label.size(0))
             train_add += train_accuracy
 
-            # Loss
+            "Loss
             loss = loss_func(output, train_label)
 
-            # Gradient to zero
+            "Gradient to zero"
             optimizer.zero_grad()
-            # Backward
+            "Backward"
             loss.backward()
-            # Update the parameter
+            "Update the parameter"
             optimizer.step()
 
             loss_record.append(loss.item())
 
-            # Evaluate for every 50 step
+            "Evaluate for every 50 step"
             if step % 50 == 0:
                 test_accuracy = 0
                 with torch.no_grad():
@@ -158,7 +158,7 @@ if __name__ == '__main__':
                     print('Test Batch:', step, '｜ Test accuracy: %.2f' % (test_accuracy/int(i)))
                     print('--------------------------------------------------------')
             print('Epoch: ', epoch, '| Step:', step, '| Train loss: %.4f' % loss.data.numpy())
-        # print train accuracy for each epoch
+        "print train accuracy for each epoch"
         train_accuracy_record.append(train_add/step)
         print('*****************************************************************')
         print('Epoch: ', epoch, '｜ Average train accuracy in this epoch: %.2f' % (train_add/step))
@@ -169,12 +169,12 @@ if __name__ == '__main__':
     train_step = [i+1 for i in range(len(loss_record))]
     train_epoch = [j+1 for j in range(len(train_accuracy_record))]
     test_epoch = [k+1 for k in range(len(test_accuracy_record))]
-    # following plot uses package utils
-    # Plot the training loss vs. step
+    "following plot uses package utils"
+    "Plot the training loss vs. step"
     plot_line(train_step, loss_record, 'Step', 'Loss', 750, 0.5, 'Loss during training')
-    # Plot the training accuracy vs. epoch
+    "Plot the training accuracy vs. epoch"
     plot_line(train_epoch, train_accuracy_record, 'Epoch', 'Accuracy', 1, 0.1, 'Accuracy during training')
-    # Plot the testing accuracy vs. epoch
+    "Plot the testing accuracy vs. epoch"
     plot_line(test_epoch, test_accuracy_record, 'Step', 'Accuracy', 30, 0.1, 'Accuracy during testing')
     print('Finish training')
     print(train_accuracy_record)

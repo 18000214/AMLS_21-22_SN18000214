@@ -1,8 +1,9 @@
 "Install opencv before full run, as this program used opencv to process images"
 #pip install opencv-python  
 
-"python magic function to record the time spend on a full run"
 %%time
+"python magic function to record the time spend on a full run, this code should be put at the top"
+
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
@@ -14,11 +15,17 @@ import cv2
 from PIL import Image
 from sklearn import metrics
 from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import MinMaxScaler, normalize
 from sklearn.model_selection import train_test_split
 
 "Set path to access model, train set and test set"
-ALGORITHM_SET = {'SVM': SVC(kernel='rbf',gamma=0.001)}
+ALGORITHM_SET = {'SVM': SVC(kernel='rbf',gamma=0.001),
+                 'KNN': KNeighborsClassifier(),
+                 'RF': RandomForestClassifier(),
+                 'MLP': MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=500)}
 MODEL_PATH = '../model/'
 TRAIN_PATH = '../dataset/train/'
 TEST_PATH = '../dataset/test/'

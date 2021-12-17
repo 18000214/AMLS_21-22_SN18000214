@@ -1,6 +1,8 @@
 "Install opencv before full run, as this program used opencv to process images"
 #pip install opencv-python  
 
+"python magic function to record the time spend on a full run"
+%%time
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 

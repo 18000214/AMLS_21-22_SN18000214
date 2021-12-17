@@ -22,6 +22,7 @@ from sklearn.preprocessing import MinMaxScaler, normalize
 from sklearn.model_selection import train_test_split
 
 "Set path to access model, train set and test set"
+"put all algorithms in one array for quick switch"
 ALGORITHM_SET = {'SVM': SVC(kernel='rbf',gamma=0.001),
                  'KNN': KNeighborsClassifier(),
                  'RF': RandomForestClassifier(),
@@ -30,6 +31,7 @@ MODEL_PATH = '../model/'
 TRAIN_PATH = '../dataset/train/'
 TEST_PATH = '../dataset/test/'
 SHAPE = (32, 32)
+"use abbreviation to switch from algorithms"
 ALGORITHM = 'SVM'
 
 "Get image information"
